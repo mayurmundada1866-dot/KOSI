@@ -1,0 +1,12 @@
+dataset/
+runs/
+__pycache__/
+*.pyc
+*.cache
+
+.vscode/
+.env
+
+*.ipynb_checkpoints
+
+yolov8n.pt
