@@ -10,3 +10,4 @@ __pycache__/
 *.ipynb_checkpoints
 
 yolov8n.pt
+models/digital_twin_rf.pkl
