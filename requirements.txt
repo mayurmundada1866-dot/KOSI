@@ -1,0 +1,11 @@
+streamlit
+ultralytics
+opencv-python
+numpy
+pandas
+scipy
+scikit-learn
+xgboost
+joblib
+plotlyS
+openpyxlS
