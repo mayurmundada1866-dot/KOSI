@@ -1,0 +1,7 @@
+path: C:/Users/mayur/Downloads/microplastic_tune/dataset/yolo_v8_dataset
+
+train: train/images
+val: valid/images
+
+names:
+  0: microplastic
