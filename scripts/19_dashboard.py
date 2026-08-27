@@ -543,49 +543,33 @@ RAMAN_FOLDER       = BASE_DIR / "dataset" / "A Raman database of microplastics w
 # ============================================================
 # LOAD MODELS
 # ============================================================
-
 @st.cache_resource
 def load_models():
     yolo    = YOLO(YOLO_PATH)
     raman   = joblib.load(RAMAN_MODEL_PATH)
     river   = joblib.load(RIVER_MODEL_PATH)
-    digital = joblib.load(DIGITAL_MODEL_PATH)
+    digital = joblib.load(DIGITAL_MODEL_PATH) if Path(DIGITAL_MODEL_PATH).exists() else None
     return yolo, raman, river, digital
-
 
 @st.cache_data
 def load_river_data():
-    ganga  = pd.read_csv("dataset/river_dataset/ganga.csv")
-    sangam = pd.read_csv("dataset/river_dataset/sangam.csv")
+    ganga_path  = BASE_DIR / "dataset" / "river_dataset" / "ganga.csv"
+    sangam_path = BASE_DIR / "dataset" / "river_dataset" / "sangam.csv"
+    if not ganga_path.exists() or not sangam_path.exists():
+        return None, None
+    ganga  = pd.read_csv(ganga_path)
+    sangam = pd.read_csv(sangam_path)
     ganga["Date"]  = pd.to_datetime(ganga["Date"])
     sangam["Date"] = pd.to_datetime(sangam["Date"])
     return ganga, sangam
 
-
 @st.cache_data
 def build_raman_grid():
-    metadata = pd.read_excel(RAMAN_FOLDER / "content.xlsx", header=1)
+    content_file = RAMAN_FOLDER / "content.xlsx"
+    if not content_file.exists():
+        return np.linspace(200, 3600, 1400)  # fallback default grid
+    metadata = pd.read_excel(content_file, header=1)
     metadata = metadata[metadata["ID"].astype(str).str.strip() != "ID"]
-    spectra = []
-    for _, row in metadata.iterrows():
-        sample  = str(row["ID"]).strip()
-        polymer = str(row["type"]).strip()
-        if polymer == "/":
-            continue
-        file = RAMAN_FOLDER / f"{sample}.txt"
-        if not file.exists():
-            continue
-        data = pd.read_csv(file, sep=r"\s+", header=None, names=["shift", "intensity"]).dropna()
-        spectra.append(data)
-    min_shift = max(item["shift"].min() for item in spectra)
-    max_shift = min(item["shift"].max() for item in spectra)
-    return np.linspace(min_shift, max_shift, 1400)
-
-
-yolo_model, raman_model, river_model, digital_model = load_models()
-ganga, sangam = load_river_data()
-raman_grid    = build_raman_grid()
-
 
 # ============================================================
 # HELPERS
