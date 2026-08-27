@@ -3,11 +3,8 @@ runs/
 __pycache__/
 *.pyc
 *.cache
-
 .vscode/
 .env
-
 *.ipynb_checkpoints
-
 yolov8n.pt
 models/digital_twin_rf.pkl
