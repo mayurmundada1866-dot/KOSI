@@ -1,38 +1,38 @@
-# KOSI 🌊
+# KOSI
 ### Multimodal AI for Microplastic and River Environmental Intelligence
 
 KOSI is a multimodal environmental intelligence platform combining **computer vision, Raman spectroscopy, water-quality modelling, and temporal forecasting** into one integrated workflow — from microplastic detection to future river-state forecasting.
 
 ---
 
-## 🔬 Modules at a Glance
+## Modules at a Glance
 
 | Modality | Purpose | Model |
 |---|---|---|
-| 🧠 Visual | Detect microplastic particles | YOLOv8 |
-| 🧬 Spectral | Identify polymer type | RBF SVM |
-| 🌊 Environmental | Estimate water quality | Random Forest |
-| 🔮 Temporal | Forecast future river state | Random Forest |
+| Visual | Detect microplastic particles | YOLOv8 |
+| Spectral | Identify polymer type | RBF SVM |
+| Environmental | Estimate water quality | Random Forest |
+| Temporal | Forecast future river state | Random Forest |
 
 ### Workflow
 ```text
            IMAGE        RAMAN        WATER
-             │            │            │
+             |            |            |
            YOLO          SVM           RF
-             │            │            │
+             |            |            |
          Detection    Polymer         WQI
-             │       Identification    │
-         Morphology                   │
+             |       Identification    |
+         Morphology                   |
              └────────────┬───────────┘
-                          ▼
+                          |
                     DIGITAL TWIN
-                          │
+                          |
                   Future River State
 ```
 
 ---
 
-## 1. 🔬 Microplastic Vision (YOLOv8)
+## 1. Microplastic Vision (YOLOv8)
 
 Single-class microplastic detector trained on microscope images.
 
@@ -46,7 +46,7 @@ Single-class microplastic detector trained on microscope images.
 
 ---
 
-## 2. 📐 Morphology Analysis
+## 2. Morphology Analysis
 
 Aspect ratio from YOLO bounding box → morphology heuristic:
 
@@ -66,7 +66,7 @@ Aspect ratio from YOLO bounding box → morphology heuristic:
 
 ---
 
-## 3. 🧬 Raman Spectroscopy (RBF SVM)
+## 3. Raman Spectroscopy (RBF SVM)
 
 Identifies polymer type from preprocessed Raman spectra.
 
@@ -76,13 +76,13 @@ Identifies polymer type from preprocessed Raman spectra.
 
 | Model | Accuracy | Macro F1 |
 |---|---|---|
-| **RBF SVM** ✅ | **0.939** | **0.922** |
+| **RBF SVM** (selected) | **0.939** | **0.922** |
 | Random Forest | 0.909 | 0.764 |
 | XGBoost | 0.909 | 0.752 |
 
 ---
 
-## 4. 🌊 Water Quality (Random Forest)
+## 4. Water Quality (Random Forest)
 
 Predicts Water Quality Index (WQI) from 9 environmental parameters.
 
@@ -90,14 +90,14 @@ Predicts Water Quality Index (WQI) from 9 environmental parameters.
 
 | Model | MAE | RMSE | R² |
 |---|---|---|---|
-| **Random Forest** ✅ | **11.359** | **37.921** | **0.933** |
+| **Random Forest** (selected) | **11.359** | **37.921** | **0.933** |
 | XGBoost | 13.411 | 54.715 | 0.862 |
 
-> ⚠️ Conductivity dominates prediction (feature importance ≈ 0.945, correlation with WQI ≈ 0.9997). R² drops to 0.163 without it.
+> Conductivity dominates prediction (feature importance ≈ 0.945, correlation with WQI ≈ 0.9997). R² drops to 0.163 without it.
 
 ---
 
-## 5. 🔮 Digital Twin (Temporal Forecasting)
+## 5. Digital Twin (Temporal Forecasting)
 
 Next-state WQI forecasting using lagged features from Ganga & Sangam river time-series.
 
@@ -113,7 +113,7 @@ Next-state WQI forecasting using lagged features from Ganga & Sangam river time-
 
 ---
 
-## 6. 📊 Performance Summary
+## 6. Performance Summary
 
 | Module | Model | Metric | Score |
 |---|---|---|---|
@@ -124,7 +124,7 @@ Next-state WQI forecasting using lagged features from Ganga & Sangam river time-
 
 ---
 
-## 7. 🗂️ Project Structure
+## 7. Project Structure
 
 ```
 KOSI/
@@ -161,7 +161,7 @@ KOSI/
 
 ---
 
-## 8. ⚙️ Installation
+## 8. Installation
 
 ```bash
 git clone https://github.com/mayurmundada1866-dot/KOSI.git
@@ -169,7 +169,7 @@ cd KOSI
 pip install -r requirements.txt
 ```
 
-## 9. 🚀 Run Dashboard
+## 9. Run Dashboard
 
 ```bash
 streamlit run scripts/19_dashboard.py
@@ -178,12 +178,12 @@ streamlit run scripts/19_dashboard.py
 ---
 
 
-## 🛠️ Built With
+## Built With
 
 `Python` `YOLOv8` `Scikit-learn` `XGBoost` `OpenCV` `SciPy` `Pandas` `NumPy` `Plotly` `Streamlit`
 
 ---
 
-## 👤 Author
+## Author
 
 **Mayur Mundada** · [GitHub](https://github.com/mayurmundada1866-dot)
