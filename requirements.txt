@@ -7,5 +7,5 @@ scipy
 scikit-learn
 xgboost
 joblib
-plotlyS
+plotly
 openpyxlS
