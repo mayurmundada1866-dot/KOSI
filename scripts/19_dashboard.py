@@ -6,7 +6,6 @@ import joblib
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 import streamlit as st
 
 from scipy.signal import savgol_filter, find_peaks
@@ -14,16 +13,12 @@ from ultralytics import YOLO
 
 
 st.set_page_config(
-    page_title="KOSI | River Intelligence Platform",
+    page_title="KOSI | Environmental Intelligence",
     page_icon="🌊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-
-# ============================================================
-# STYLE — Bioluminescent Deep-Water Terminal
-# ============================================================
 
 st.markdown(
     """
@@ -32,26 +27,21 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
     :root {
-        --teal:    #00f5d4;
-        --violet:  #7c3aed;
-        --indigo:  #4f46e5;
-        --sky:     #38bdf8;
-        --amber:   #f59e0b;
-        --rose:    #f43f5e;
-        --green:   #22d3a0;
+        --teal: #00f5d4;
+        --violet: #7c3aed;
+        --sky: #38bdf8;
+        --text1: #e8f3ff;
+        --text2: #8ca8c5;
+        --text3: #56738f;
         --surface: rgba(255,255,255,0.036);
-        --border:  rgba(255,255,255,0.075);
-        --text-1:  #e8f3ff;
-        --text-2:  #8ca8c5;
-        --text-3:  #56738f;
+        --border: rgba(255,255,255,0.075);
     }
 
     html, body, [class*="css"] {
         font-family: 'Space Grotesk', sans-serif;
-        color: var(--text-1);
+        color: var(--text1);
     }
 
-    /* ── APP BACKGROUND ── */
     .stApp {
         background:
             radial-gradient(ellipse 80% 60% at 50% -20%, rgba(0,245,212,0.07) 0%, transparent 60%),
@@ -61,28 +51,13 @@ st.markdown(
         min-height: 100vh;
     }
 
-    /* ── SIDEBAR ── */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #020b16 0%, #030d1a 100%) !important;
         border-right: 1px solid rgba(0,245,212,0.1);
     }
 
-    [data-testid="stSidebar"] > div:first-child {
-        padding-top: 2rem;
-    }
-
     [data-testid="stSidebar"] * {
-        color: var(--text-1) !important;
-    }
-
-    /* ── INPUTS ── */
-    .stSelectbox > div > div,
-    .stRadio > div,
-    .stNumberInput > div {
-        background: rgba(0,245,212,0.04) !important;
-        border: 1px solid rgba(0,245,212,0.15) !important;
-        border-radius: 10px !important;
-        color: var(--text-1) !important;
+        color: var(--text1) !important;
     }
 
     .stButton > button {
@@ -90,310 +65,243 @@ st.markdown(
         border: 1px solid rgba(0,245,212,0.35) !important;
         color: var(--teal) !important;
         font-family: 'JetBrains Mono', monospace !important;
-        font-size: 13px !important;
         font-weight: 700 !important;
-        letter-spacing: 1.5px !important;
+        letter-spacing: 1px !important;
         border-radius: 12px !important;
-        padding: 14px 28px !important;
+        padding: 13px 25px !important;
         transition: all 0.25s ease !important;
-        box-shadow: 0 0 20px rgba(0,245,212,0.08) !important;
     }
 
     .stButton > button:hover {
-        background: linear-gradient(135deg, rgba(0,245,212,0.28), rgba(124,58,237,0.32)) !important;
-        box-shadow: 0 0 35px rgba(0,245,212,0.20), 0 0 70px rgba(124,58,237,0.12) !important;
         transform: translateY(-2px) !important;
+        box-shadow: 0 0 35px rgba(0,245,212,0.18), 0 0 70px rgba(124,58,237,0.10) !important;
     }
 
-    /* ── FILE UPLOADER ── */
     [data-testid="stFileUploader"] {
         background: rgba(0,245,212,0.03) !important;
         border: 1.5px dashed rgba(0,245,212,0.22) !important;
         border-radius: 16px !important;
-        transition: border-color 0.2s;
     }
 
-    [data-testid="stFileUploader"]:hover {
-        border-color: rgba(0,245,212,0.5) !important;
-    }
-
-    /* ── DATAFRAME ── */
-    [data-testid="stDataFrame"] {
-        border: 1px solid rgba(0,245,212,0.12) !important;
-        border-radius: 14px !important;
-        overflow: hidden !important;
-    }
-
-    /* ── HERO ── */
-    .pravaah-hero {
+    .hero {
         position: relative;
         overflow: hidden;
-        padding: 44px 44px 38px;
+        padding: 44px;
         border-radius: 28px;
-        background:
-            linear-gradient(135deg,
-            rgba(0,245,212,0.07) 0%,
-            rgba(124,58,237,0.10) 60%,
-            rgba(56,189,248,0.06) 100%);
+        background: linear-gradient(135deg, rgba(0,245,212,0.07), rgba(124,58,237,0.10), rgba(56,189,248,0.06));
         border: 1px solid rgba(0,245,212,0.13);
-        box-shadow:
-            0 0 0 1px rgba(255,255,255,0.04),
-            0 24px 80px rgba(0,0,0,0.38),
-            inset 0 1px 0 rgba(255,255,255,0.08);
-        margin-bottom: 32px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 24px 80px rgba(0,0,0,0.38);
+        margin-bottom: 30px;
     }
 
-    .pravaah-hero::before {
+    .hero:before {
         content: "";
         position: absolute;
         width: 320px; height: 320px;
         border-radius: 50%;
         right: -100px; top: -130px;
-        background: radial-gradient(circle, rgba(0,245,212,0.12) 0%, transparent 70%);
-        animation: orb-drift 8s ease-in-out infinite alternate;
+        background: radial-gradient(circle, rgba(0,245,212,0.12), transparent 70%);
+        animation: drift 8s ease-in-out infinite alternate;
     }
 
-    .pravaah-hero::after {
+    .hero:after {
         content: "";
         position: absolute;
         width: 180px; height: 180px;
         border-radius: 50%;
         left: 30%; bottom: -80px;
-        background: radial-gradient(circle, rgba(124,58,237,0.10) 0%, transparent 70%);
-        animation: orb-drift 11s ease-in-out infinite alternate-reverse;
+        background: radial-gradient(circle, rgba(124,58,237,0.10), transparent 70%);
+        animation: drift2 10s ease-in-out infinite alternate;
     }
 
-    @keyframes orb-drift {
-        from { transform: translate(0, 0) scale(1); }
-        to   { transform: translate(20px, -15px) scale(1.08); }
+    @keyframes drift {
+        from { transform: translate(0,0) scale(1); }
+        to { transform: translate(20px,-15px) scale(1.08); }
     }
 
-    .hero-eyebrow {
+    @keyframes drift2 {
+        from { transform: translate(0,0) scale(1); }
+        to { transform: translate(-15px,10px) scale(1.08); }
+    }
+
+    .eyebrow {
         font-family: 'JetBrains Mono', monospace;
         font-size: 11px;
-        color: var(--teal);
         letter-spacing: 3px;
+        color: var(--teal);
         margin-bottom: 12px;
-        opacity: 0.8;
     }
 
-    .hero-wordmark {
+    .wordmark {
         font-size: 64px;
         font-weight: 700;
         letter-spacing: -3px;
         line-height: 1;
-        background: linear-gradient(120deg, #00f5d4 0%, #38bdf8 45%, #a78bfa 100%);
+        background: linear-gradient(120deg, #00f5d4, #38bdf8, #a78bfa);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 14px;
+        margin-bottom: 15px;
         position: relative;
         z-index: 1;
     }
 
-    .hero-tagline {
-        color: var(--text-2);
+    .tagline {
+        color: var(--text2);
         font-size: 15px;
-        line-height: 1.75;
-        max-width: 680px;
+        line-height: 1.7;
+        max-width: 850px;
         position: relative;
         z-index: 1;
     }
 
-    .hero-pills {
+    .status-bar {
         display: flex;
+        gap: 18px;
         flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 24px;
-        position: relative;
-        z-index: 1;
+        margin-top: 22px;
     }
 
-    .hero-pill {
+    .status-item {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--text2);
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 11px;
-        color: var(--text-2);
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 999px;
-        padding: 6px 14px;
-        letter-spacing: 0.5px;
+        gap: 7px;
     }
 
-    .live-dot {
+    .dot {
         width: 7px; height: 7px;
         border-radius: 50%;
         background: #22d3a0;
         box-shadow: 0 0 8px #22d3a0, 0 0 16px #22d3a0;
-        animation: live-blink 2s ease-in-out infinite;
-        flex-shrink: 0;
+        animation: blink 2s ease-in-out infinite;
     }
 
-    @keyframes live-blink {
-        0%, 100% { opacity: 1; }
-        50%       { opacity: 0.2; }
+    @keyframes blink {
+        0%,100% { opacity:1; }
+        50% { opacity:0.2; }
     }
 
-    /* ── METRIC CARD ── */
-    .mc {
-        padding: 22px 24px;
+    .metric-card {
+        padding: 22px;
         border-radius: 20px;
         background: var(--surface);
         border: 1px solid var(--border);
         box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+        min-height: 135px;
+        transition: 0.2s;
         position: relative;
         overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    .mc:hover {
+    .metric-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 16px 48px rgba(0,0,0,0.32), 0 0 0 1px rgba(0,245,212,0.12);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.32);
     }
 
-    .mc::before {
+    .metric-card:before {
         content: "";
         position: absolute;
         top: 0; left: 0; right: 0;
         height: 2px;
         background: linear-gradient(90deg, var(--teal), var(--violet));
-        opacity: 0.6;
     }
 
-    .mc-label {
+    .metric-label {
         font-family: 'JetBrains Mono', monospace;
         font-size: 10px;
         letter-spacing: 2px;
-        color: var(--text-3);
-        text-transform: uppercase;
+        color: var(--text3);
         margin-bottom: 10px;
     }
 
-    .mc-val {
-        font-size: 32px;
+    .metric-value {
+        font-size: 31px;
         font-weight: 700;
-        letter-spacing: -1px;
-        background: linear-gradient(135deg, #e8f3ff, #a0cfe8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
 
-    .mc-sub {
+    .metric-info {
         font-size: 11px;
-        color: var(--text-3);
+        color: var(--text3);
         margin-top: 8px;
-        line-height: 1.5;
     }
 
-    /* ── SECTION HEADING ── */
-    .sec-head {
+    .section-head {
         display: flex;
         align-items: baseline;
-        gap: 14px;
-        margin: 32px 0 6px;
+        gap: 13px;
+        margin-top: 30px;
+        margin-bottom: 6px;
     }
 
-    .sec-title {
+    .section-title {
         font-size: 22px;
         font-weight: 700;
-        letter-spacing: -0.5px;
-        color: var(--text-1);
     }
 
-    .sec-num {
+    .section-number {
         font-family: 'JetBrains Mono', monospace;
-        font-size: 11px;
+        font-size: 10px;
         color: var(--teal);
         letter-spacing: 2px;
-        opacity: 0.7;
     }
 
-    .sec-sub {
-        font-size: 13px;
-        color: var(--text-3);
-        margin-bottom: 20px;
-        line-height: 1.6;
+    .section-sub {
+        color: var(--text3);
+        font-size: 12px;
+        margin-bottom: 18px;
     }
 
-    /* ── GLASS CARD ── */
-    .gc {
+    .glass {
+        padding: 22px;
+        border-radius: 20px;
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.16);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
         margin-bottom: 16px;
     }
 
-    /* ── PIPELINE FLOW ── */
-    .pipe-grid {
+    .pipeline {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 12px;
         margin: 20px 0;
     }
 
-    .pipe-node {
+    .pipe {
         padding: 20px 12px;
         text-align: center;
         border-radius: 18px;
         background: rgba(255,255,255,0.03);
         border: 1px solid rgba(255,255,255,0.07);
+        transition: all .2s;
         position: relative;
-        transition: all 0.2s;
-        cursor: default;
     }
 
-    .pipe-node:hover {
-        background: rgba(0,245,212,0.06);
-        border-color: rgba(0,245,212,0.2);
+    .pipe:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.2), 0 0 20px rgba(0,245,212,0.07);
+        border-color: rgba(0,245,212,0.25);
+        background: rgba(0,245,212,0.05);
     }
 
-    .pipe-icon {
-        font-size: 30px;
-        margin-bottom: 8px;
-        display: block;
+    .pipe-icon { font-size: 29px; }
+    .pipe-name { font-size: 12px; font-weight: 700; margin-top: 8px; }
+    .pipe-desc { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text3); margin-top: 5px; }
+
+    .teal-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0,245,212,0.25), transparent);
+        margin: 28px 0;
     }
 
-    .pipe-name {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-1);
-        letter-spacing: 0.3px;
-    }
-
-    .pipe-desc {
-        font-size: 10px;
-        color: var(--text-3);
-        margin-top: 5px;
-        font-family: 'JetBrains Mono', monospace;
-    }
-
-    .pipe-arr {
-        position: absolute;
-        right: -14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--teal);
-        font-size: 14px;
-        opacity: 0.5;
-        z-index: 1;
-    }
-
-    /* ── BADGE ── */
     .bdg {
         display: inline-block;
-        padding: 5px 11px;
+        padding: 4px 10px;
         border-radius: 999px;
         font-family: 'JetBrains Mono', monospace;
-        font-size: 10px;
-        font-weight: 500;
+        font-size: 9px;
+        font-weight: 600;
         letter-spacing: 1px;
         margin-bottom: 10px;
     }
@@ -402,125 +310,19 @@ st.markdown(
     .bdg-violet { color: #c4b5fd; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.26); }
     .bdg-amber  { color: #fcd34d; background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.22); }
     .bdg-sky    { color: #7dd3fc; background: rgba(56,189,248,0.10); border: 1px solid rgba(56,189,248,0.22); }
-    .bdg-rose   { color: #fda4af; background: rgba(244,63,94,0.10); border: 1px solid rgba(244,63,94,0.22); }
 
-    /* ── SIDEBAR NAV ── */
-    .sidebar-brand {
-        padding: 0 16px 24px;
-        border-bottom: 1px solid rgba(0,245,212,0.10);
-        margin-bottom: 20px;
-    }
+    .small-muted { color: var(--text2); font-size: 13px; line-height: 1.7; margin: 0; }
 
-    .brand-mark {
-        font-size: 26px;
-        font-weight: 700;
-        letter-spacing: -0.8px;
-        background: linear-gradient(120deg, #00f5d4, #38bdf8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .brand-sub {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 9px;
-        color: var(--text-3);
-        letter-spacing: 2.5px;
-        margin-top: 3px;
-    }
-
-    .module-status {
-        padding: 14px 16px;
-        background: rgba(0,245,212,0.03);
-        border: 1px solid rgba(0,245,212,0.09);
-        border-radius: 12px;
-        margin-top: 20px;
-    }
-
-    .mod-title {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 9px;
-        letter-spacing: 2px;
-        color: var(--teal);
-        margin-bottom: 10px;
-        opacity: 0.8;
-    }
-
-    .mod-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 11px;
-        color: var(--text-2);
-        margin: 7px 0;
-    }
-
-    .mod-dot {
-        width: 6px; height: 6px;
-        border-radius: 50%;
-        background: #22d3a0;
-        box-shadow: 0 0 6px #22d3a0;
-        animation: live-blink 2s ease-in-out infinite;
-        flex-shrink: 0;
-    }
-
-    /* ── RESULT CALLOUT ── */
-    .result-callout {
-        padding: 28px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, rgba(0,245,212,0.06), rgba(124,58,237,0.08));
-        border: 1px solid rgba(0,245,212,0.18);
-        box-shadow: 0 0 40px rgba(0,245,212,0.05);
-        text-align: center;
-    }
-
-    .result-label {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 10px;
-        letter-spacing: 2.5px;
-        color: var(--text-3);
-        text-transform: uppercase;
-        margin-bottom: 8px;
-    }
-
-    .result-big {
-        font-size: 42px;
-        font-weight: 700;
-        letter-spacing: -1.5px;
-        background: linear-gradient(135deg, #00f5d4, #7c3aed);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .result-note {
-        font-size: 12px;
-        color: var(--text-3);
-        margin-top: 8px;
-    }
-
-    /* ── DIVIDER ── */
-    .teal-divider {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0,245,212,0.25), transparent);
-        margin: 30px 0;
-    }
-
-    /* ── FOOTER ── */
-    .pravaah-footer {
+    .footer {
         text-align: center;
         padding: 32px;
-        margin-top: 60px;
+        margin-top: 50px;
         font-family: 'JetBrains Mono', monospace;
-        font-size: 10px;
+        font-size: 9px;
         letter-spacing: 2px;
-        color: var(--text-3);
+        color: var(--text3);
         border-top: 1px solid rgba(255,255,255,0.05);
     }
-
-    /* scrollbar */
-    ::-webkit-scrollbar { width: 6px; background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0,245,212,0.15); border-radius: 4px; }
 
     </style>
     """,
@@ -532,7 +334,7 @@ st.markdown(
 # PATHS
 # ============================================================
 
-BASE_DIR = Path(__file__).parent.parent  # KOSI/
+BASE_DIR = Path(__file__).parent.parent
 
 YOLO_PATH          = BASE_DIR / "models" / "yolo_best.pt"
 RAMAN_MODEL_PATH   = BASE_DIR / "models" / "raman_svm.pkl"
@@ -540,9 +342,11 @@ RIVER_MODEL_PATH   = BASE_DIR / "models" / "river_rf.pkl"
 DIGITAL_MODEL_PATH = BASE_DIR / "models" / "digital_twin_rf.pkl"
 RAMAN_FOLDER       = BASE_DIR / "dataset" / "A Raman database of microplastics weathered under natural environments"
 
+
 # ============================================================
 # LOAD MODELS
 # ============================================================
+
 @st.cache_resource
 def load_models():
     yolo    = YOLO(YOLO_PATH)
@@ -551,66 +355,90 @@ def load_models():
     digital = joblib.load(DIGITAL_MODEL_PATH) if Path(DIGITAL_MODEL_PATH).exists() else None
     return yolo, raman, river, digital
 
+
 @st.cache_data
 def load_river_data():
-    ganga_path  = BASE_DIR / "dataset" / "river_dataset" / "ganga.csv"
-    sangam_path = BASE_DIR / "dataset" / "river_dataset" / "sangam.csv"
-    if not ganga_path.exists() or not sangam_path.exists():
+    g = BASE_DIR / "dataset" / "river_dataset" / "ganga.csv"
+    s = BASE_DIR / "dataset" / "river_dataset" / "sangam.csv"
+    if not g.exists() or not s.exists():
         return None, None
-    ganga  = pd.read_csv(ganga_path)
-    sangam = pd.read_csv(sangam_path)
+    ganga  = pd.read_csv(g)
+    sangam = pd.read_csv(s)
     ganga["Date"]  = pd.to_datetime(ganga["Date"])
     sangam["Date"] = pd.to_datetime(sangam["Date"])
     return ganga, sangam
 
+
 @st.cache_data
 def build_raman_grid():
-    content_file = RAMAN_FOLDER / "content.xlsx"
-    if not content_file.exists():
-        return np.linspace(200, 3600, 1400)  # fallback default grid
-    metadata = pd.read_excel(content_file, header=1)
+    content = RAMAN_FOLDER / "content.xlsx"
+    if not content.exists():
+        return np.linspace(200, 3600, 1400)
+    metadata = pd.read_excel(content, header=1)
     metadata = metadata[metadata["ID"].astype(str).str.strip() != "ID"]
+    spectra = []
+    for _, row in metadata.iterrows():
+        sample  = str(row["ID"]).strip()
+        polymer = str(row["type"]).strip()
+        if polymer == "/":
+            continue
+        file = RAMAN_FOLDER / f"{sample}.txt"
+        if not file.exists():
+            continue
+        data = pd.read_csv(file, sep=r"\s+", header=None, names=["shift","intensity"]).dropna()
+        spectra.append(data)
+    if not spectra:
+        return np.linspace(200, 3600, 1400)
+    return np.linspace(
+        max(s["shift"].min() for s in spectra),
+        min(s["shift"].max() for s in spectra),
+        1400
+    )
+
+
+yolo_model, raman_model, river_model, digital_model = load_models()
+ganga, sangam = load_river_data()
+raman_grid    = build_raman_grid()
+
 
 # ============================================================
 # HELPERS
 # ============================================================
 
-def metric_card(label, value, info, accent="#00f5d4"):
+def metric_card(label, value, info):
     st.markdown(
         f"""
-        <div class="mc">
-            <div class="mc-label">{label}</div>
-            <div class="mc-val">{value}</div>
-            <div class="mc-sub">{info}</div>
+        <div class="metric-card">
+            <div class="metric-label">{label}</div>
+            <div class="metric-value">{value}</div>
+            <div class="metric-info">{info}</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
-def section_head(title, num="", sub=""):
-    num_html = f'<span class="sec-num">{num}</span>' if num else ""
-    sub_html = f'<p class="sec-sub">{sub}</p>' if sub else ""
+def section_head(title, number="", subtitle=""):
     st.markdown(
         f"""
-        <div class="sec-head">
-            <span class="sec-title">{title}</span>
-            {num_html}
+        <div class="section-head">
+            <span class="section-title">{title}</span>
+            <span class="section-number">{number}</span>
         </div>
-        {sub_html}
+        <div class="section-sub">{subtitle}</div>
         """,
         unsafe_allow_html=True
     )
 
 
 def morphology(ratio):
-    if 1 < ratio <= 1.3:
-        return "Pellet",      (255,  80,  80)
-    if 1.3 < ratio <= 4:
-        return "Fragment",    ( 80, 220, 160)
-    if 0.8 < ratio <= 1:
-        return "Filament",    ( 80, 150, 255)
-    return "Unclassified", (160, 160, 160)
+    if ratio > 1 and ratio <= 1.3:
+        return "Pellet",      (255, 80,  80)
+    if ratio > 1.3 and ratio <= 4:
+        return "Fragment",    (80,  220, 160)
+    if ratio > 0.8 and ratio <= 1:
+        return "Filament",    (80,  150, 255)
+    return "Unclassified", (150, 150, 150)
 
 
 def process_raman(data):
@@ -626,28 +454,13 @@ def process_raman(data):
     return y
 
 
-def plotly_theme(fig, h=480):
+def plot_theme(fig, height=450):
     fig.update_layout(
+        height=height,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(255,255,255,0.015)",
         font=dict(color="#8ca8c5", family="Space Grotesk"),
-        margin=dict(l=24, r=24, t=50, b=28),
-        height=h,
-        xaxis=dict(
-            gridcolor="rgba(255,255,255,0.05)",
-            linecolor="rgba(255,255,255,0.06)",
-            showgrid=True
-        ),
-        yaxis=dict(
-            gridcolor="rgba(255,255,255,0.05)",
-            linecolor="rgba(255,255,255,0.06)",
-            showgrid=True
-        ),
-        legend=dict(
-            bgcolor="rgba(0,0,0,0)",
-            bordercolor="rgba(255,255,255,0.07)",
-            borderwidth=1
-        )
+        margin=dict(l=25, r=25, t=50, b=30)
     )
     return fig
 
@@ -657,22 +470,20 @@ def plotly_theme(fig, h=480):
 # ============================================================
 
 with st.sidebar:
+
     st.markdown(
         """
-        <div class="sidebar-brand">
-            <div class="brand-mark">🌊 KOSI</div>
-            <div class="brand-sub">RIVER INTELLIGENCE PLATFORM</div>
+        <div style="padding:0 16px 24px; border-bottom:1px solid rgba(0,245,212,0.10); margin-bottom:20px;">
+            <div style="font-size:26px;font-weight:700;background:linear-gradient(120deg,#00f5d4,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🌊 KOSI</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#56738f;letter-spacing:2.5px;margin-top:3px;">ENVIRONMENTAL INTELLIGENCE</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    role = st.selectbox(
-        "Workspace",
-        ["Researcher", "Water Quality Analyst", "General User"]
-    )
+    role = st.selectbox("Workspace", ["Researcher", "Water Quality Analyst", "General User"])
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")
 
     page = st.radio(
         "Navigation",
@@ -686,14 +497,16 @@ with st.sidebar:
         ]
     )
 
+    st.markdown("---")
+
     st.markdown(
         """
-        <div class="module-status">
-            <div class="mod-title">ACTIVE MODULES</div>
-            <div class="mod-item"><span class="mod-dot"></span> Vision AI — YOLOv8</div>
-            <div class="mod-item"><span class="mod-dot"></span> Spectral AI — RBF SVM</div>
-            <div class="mod-item"><span class="mod-dot"></span> River AI — Random Forest</div>
-            <div class="mod-item"><span class="mod-dot"></span> Twin AI — Temporal RF</div>
+        <div class="glass">
+            <div class="metric-label">ACTIVE MODULES</div>
+            <div class="status-item" style="margin:6px 0;display:flex;align-items:center;gap:8px;font-size:11px;color:#8ca8c5;"><span class="dot"></span> Vision AI</div>
+            <div class="status-item" style="margin:6px 0;display:flex;align-items:center;gap:8px;font-size:11px;color:#8ca8c5;"><span class="dot"></span> Spectral AI</div>
+            <div class="status-item" style="margin:6px 0;display:flex;align-items:center;gap:8px;font-size:11px;color:#8ca8c5;"><span class="dot"></span> Water AI</div>
+            <div class="status-item" style="margin:6px 0;display:flex;align-items:center;gap:8px;font-size:11px;color:#8ca8c5;"><span class="dot"></span> Temporal AI</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -706,20 +519,19 @@ with st.sidebar:
 
 st.markdown(
     """
-    <div class="pravaah-hero">
-        <div class="hero-eyebrow">◈ RIVER INTELLIGENCE PLATFORM</div>
-        <div class="hero-wordmark">KOSI</div>
-        <div class="hero-tagline">
-            Named after India's most unpredictable river — KOSI watches so rivers don't become sorrows.
-            AI-powered microplastic detection, polymer fingerprinting,
-            water-quality estimation and next-state river forecasting,
-            unified in a single intelligence platform.
+    <div class="hero">
+        <div class="eyebrow">◈ MULTIMODAL ENVIRONMENTAL INTELLIGENCE</div>
+        <div class="wordmark">KOSI</div>
+        <div class="tagline">
+            AI-powered microplastic detection, morphology analysis,
+            Raman polymer identification, water-quality assessment
+            and next-state river forecasting — unified in one intelligent platform.
         </div>
-        <div class="hero-pills">
-            <span class="hero-pill"><span class="live-dot"></span>YOLO ONLINE</span>
-            <span class="hero-pill"><span class="live-dot"></span>RAMAN ONLINE</span>
-            <span class="hero-pill"><span class="live-dot"></span>WATER MODEL ONLINE</span>
-            <span class="hero-pill"><span class="live-dot"></span>DIGITAL TWIN ONLINE</span>
+        <div class="status-bar">
+            <div class="status-item"><span class="dot"></span> YOLO READY</div>
+            <div class="status-item"><span class="dot"></span> RAMAN READY</div>
+            <div class="status-item"><span class="dot"></span> WATER MODEL READY</div>
+            <div class="status-item"><span class="dot"></span> DIGITAL TWIN READY</div>
         </div>
     </div>
     """,
@@ -733,55 +545,31 @@ st.markdown(
 
 if page == "🏠  Command Center":
 
-    section_head("Performance Snapshot", "01", "Live model metrics across all four intelligence modules.")
+    section_head("Performance Snapshot", "01", "Core model performance across the KOSI multimodal pipeline.")
 
     cols = st.columns(4)
     cards = [
-        ("YOLO mAP@50",     "73.4%", "Microplastic particle detection"),
-        ("Raman Accuracy",  "93.9%", "Polymer identification via SVM"),
-        ("River RF  R²",    "0.933", "Water Quality Index estimation"),
-        ("Digital Twin R²", "0.987", "Future WQI state forecasting"),
+        ("YOLO mAP@50",     "73.4%", "Microplastic detection"),
+        ("Raman Accuracy",  "93.9%", "Polymer identification"),
+        ("River RF R²",     "0.933", "WQI estimation"),
+        ("Digital Twin R²", "0.987", "True WQI forecasting"),
     ]
-    for col, (lbl, val, sub) in zip(cols, cards):
+    for col, (label, value, info) in zip(cols, cards):
         with col:
-            metric_card(lbl, val, sub)
+            metric_card(label, value, info)
 
     st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
 
-    section_head("Multimodal Pipeline", "02", "Five-stage flow from raw image to future river state.")
+    section_head("Multimodal Pipeline", "02", "From particle detection to future river-state intelligence.")
 
     st.markdown(
         """
-        <div class="pipe-grid">
-            <div class="pipe-node">
-                <span class="pipe-icon">📷</span>
-                <div class="pipe-name">Vision</div>
-                <div class="pipe-desc">Detect particles</div>
-                <span class="pipe-arr">›</span>
-            </div>
-            <div class="pipe-node">
-                <span class="pipe-icon">📐</span>
-                <div class="pipe-name">Morphology</div>
-                <div class="pipe-desc">Shape analysis</div>
-                <span class="pipe-arr">›</span>
-            </div>
-            <div class="pipe-node">
-                <span class="pipe-icon">🧬</span>
-                <div class="pipe-name">Raman</div>
-                <div class="pipe-desc">Polymer ID</div>
-                <span class="pipe-arr">›</span>
-            </div>
-            <div class="pipe-node">
-                <span class="pipe-icon">🌊</span>
-                <div class="pipe-name">Water</div>
-                <div class="pipe-desc">WQI analysis</div>
-                <span class="pipe-arr">›</span>
-            </div>
-            <div class="pipe-node">
-                <span class="pipe-icon">🔮</span>
-                <div class="pipe-name">Digital Twin</div>
-                <div class="pipe-desc">Future state</div>
-            </div>
+        <div class="pipeline">
+            <div class="pipe"><div class="pipe-icon">📷</div><div class="pipe-name">Vision</div><div class="pipe-desc">YOLO DETECTION</div></div>
+            <div class="pipe"><div class="pipe-icon">📐</div><div class="pipe-name">Morphology</div><div class="pipe-desc">ASPECT RATIO</div></div>
+            <div class="pipe"><div class="pipe-icon">🧬</div><div class="pipe-name">Raman</div><div class="pipe-desc">POLYMER ID</div></div>
+            <div class="pipe"><div class="pipe-icon">🌊</div><div class="pipe-name">Water</div><div class="pipe-desc">WQI MODEL</div></div>
+            <div class="pipe"><div class="pipe-icon">🔮</div><div class="pipe-name">Digital Twin</div><div class="pipe-desc">FORECAST</div></div>
         </div>
         """,
         unsafe_allow_html=True
@@ -789,80 +577,46 @@ if page == "🏠  Command Center":
 
     st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
 
-    section_head("Live River State", "03", "WQI evolution for Ganga and Sangam monitoring sites.")
+    section_head("River Intelligence", "03", "Real historical WQI behaviour from Ganga and Sangam.")
 
-    g_plot = ganga.sort_values("Date").tail(300)
-    s_plot = sangam.sort_values("Date").tail(300)
+    if ganga is not None and sangam is not None:
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=g_plot["Date"], y=g_plot["WQI"],
-        mode="lines", name="Ganga",
-        line=dict(color="#00f5d4", width=2),
-        fill="tozeroy",
-        fillcolor="rgba(0,245,212,0.05)"
-    ))
-    fig.add_trace(go.Scatter(
-        x=s_plot["Date"], y=s_plot["WQI"],
-        mode="lines", name="Sangam",
-        line=dict(color="#a78bfa", width=2),
-        fill="tozeroy",
-        fillcolor="rgba(167,139,250,0.05)"
-    ))
+        g = ganga.sort_values("Date").tail(300)
+        s = sangam.sort_values("Date").tail(300)
 
-    frames = []
-    steps  = min(len(g_plot), len(s_plot))
-    for i in range(20, steps, 10):
-        frames.append(go.Frame(data=[
-            go.Scatter(x=g_plot["Date"].iloc[:i], y=g_plot["WQI"].iloc[:i],
-                       mode="lines", name="Ganga",
-                       line=dict(color="#00f5d4", width=2),
-                       fill="tozeroy", fillcolor="rgba(0,245,212,0.05)"),
-            go.Scatter(x=s_plot["Date"].iloc[:i], y=s_plot["WQI"].iloc[:i],
-                       mode="lines", name="Sangam",
-                       line=dict(color="#a78bfa", width=2),
-                       fill="tozeroy", fillcolor="rgba(167,139,250,0.05)")
-        ]))
-    fig.frames = frames
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=g["Date"], y=g["WQI"], mode="lines", name="Ganga",  line=dict(color="#00f5d4", width=2)))
+        fig.add_trace(go.Scatter(x=s["Date"], y=s["WQI"], mode="lines", name="Sangam", line=dict(color="#a78bfa", width=2)))
 
-    fig.update_layout(
-        title="WQI Evolution — Animated",
-        updatemenus=[{
-            "type": "buttons", "direction": "left",
-            "x": 0.01, "y": 1.15,
-            "buttons": [{
-                "label": "▶  PLAY",
-                "method": "animate",
-                "args": [None, {"frame": {"duration": 80, "redraw": True}, "fromcurrent": True}]
-            }]
-        }]
-    )
-    st.plotly_chart(plotly_theme(fig, 480), use_container_width=True)
+        frames = []
+        steps  = min(len(g), len(s))
+        for i in range(20, steps, 10):
+            frames.append(go.Frame(data=[
+                go.Scatter(x=g["Date"].iloc[:i], y=g["WQI"].iloc[:i], mode="lines", name="Ganga",  line=dict(color="#00f5d4", width=2)),
+                go.Scatter(x=s["Date"].iloc[:i], y=s["WQI"].iloc[:i], mode="lines", name="Sangam", line=dict(color="#a78bfa", width=2))
+            ]))
+        fig.frames = frames
 
-    st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
-    section_head("River Status Distribution", "04")
+        fig.update_layout(
+            title="Animated WQI Evolution",
+            xaxis_title="Date", yaxis_title="WQI",
+            updatemenus=[{"type":"buttons","buttons":[{"label":"▶ PLAY","method":"animate","args":[None,{"frame":{"duration":90,"redraw":True},"fromcurrent":True}]}]}]
+        )
+        st.plotly_chart(plot_theme(fig, 470), use_container_width=True)
 
-    c1, c2 = st.columns(2)
-    for col, df, site_name, color in [
-        (c1, ganga,  "Ganga",  ["#00f5d4","#38bdf8","#7c3aed","#f59e0b","#f43f5e"]),
-        (c2, sangam, "Sangam", ["#a78bfa","#38bdf8","#00f5d4","#fcd34d","#f43f5e"]),
-    ]:
-        with col:
-            status = df["Status"].value_counts()
-            fig = go.Figure(go.Pie(
-                labels=status.index,
-                values=status.values,
-                hole=0.62,
-                marker=dict(colors=color, line=dict(width=0)),
-                textinfo="percent",
-                textfont=dict(family="JetBrains Mono", size=11)
-            ))
-            fig.update_layout(
-                title=site_name,
-                annotations=[dict(text=site_name, showarrow=False,
-                                  font=dict(size=14, color="#e8f3ff", family="Space Grotesk"))]
-            )
-            st.plotly_chart(plotly_theme(fig, 380), use_container_width=True)
+        st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
+        section_head("River Status Distribution", "04")
+
+        c1, c2 = st.columns(2)
+        for col, df, site in [(c1, ganga, "Ganga"), (c2, sangam, "Sangam")]:
+            with col:
+                status = df["Status"].value_counts()
+                fig = go.Figure(go.Pie(labels=status.index, values=status.values, hole=0.62))
+                fig.update_layout(title=site)
+                st.plotly_chart(plot_theme(fig, 360), use_container_width=True)
+
+    else:
+        st.warning("River datasets not available in this deployment.")
 
 
 # ============================================================
@@ -871,23 +625,24 @@ if page == "🏠  Command Center":
 
 elif page == "🔬  Microplastic Vision":
 
-    section_head("Microplastic Vision", "01", "Upload a microscope image — YOLO detects particles and aspect-ratio rules classify morphology.")
+    section_head("Microplastic Vision Intelligence", "01", "YOLO detection followed by aspect-ratio morphology analysis.")
 
-    uploaded = st.file_uploader("Upload microscope image", type=["jpg","jpeg","png"], key="vision_upload")
+    uploaded = st.file_uploader("Upload microscope image", type=["jpg","jpeg","png"])
 
     if uploaded:
+
         data   = np.asarray(bytearray(uploaded.read()), dtype=np.uint8)
         image  = cv2.imdecode(data, cv2.IMREAD_COLOR)
         result = yolo_model.predict(image, conf=0.25, verbose=False)[0]
         output = image.copy()
 
-        counts = {"Pellet": 0, "Fragment": 0, "Filament": 0, "Unclassified": 0}
-        aspect_ratios = []
-        detections    = []
+        counts = {"Pellet":0, "Fragment":0, "Filament":0, "Unclassified":0}
+        ratios = []
+        detections = []
 
         for box in result.boxes:
-            x1, y1, x2, y2  = map(int, box.xyxy[0])
-            confidence       = float(box.conf[0])
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            confidence = float(box.conf[0])
             width  = x2 - x1
             height = y2 - y1
             if height == 0:
@@ -895,57 +650,42 @@ elif page == "🔬  Microplastic Vision":
             ratio = width / height
             label, color = morphology(ratio)
             counts[label] += 1
-            aspect_ratios.append(ratio)
+            ratios.append(ratio)
             detections.append({"Shape": label, "Aspect Ratio": round(ratio, 3), "Confidence": round(confidence, 3)})
             cv2.rectangle(output, (x1, y1), (x2, y2), color, 2)
-            cv2.putText(output, f"{label} {confidence:.2f}", (x1, max(y1-10, 20)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.48, color, 2)
+            cv2.putText(output, f"{label} {confidence:.2f}", (x1, max(y1-10, 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.48, color, 2)
 
         output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
 
-        left, right = st.columns([1.8, 1])
+        left, right = st.columns([1.75, 1])
         with left:
-            st.image(output, caption="YOLO detections with morphology labels", use_container_width=True)
+            st.image(output, caption="YOLO microplastic detections", use_container_width=True)
         with right:
-            metric_card("Total Detected",   str(sum(counts.values())), "Particles above confidence threshold")
+            metric_card("Total Detected", str(sum(counts.values())), "Confidence threshold ≥ 0.25")
             st.write("")
             a, b = st.columns(2)
-            with a: metric_card("Pellets",   counts["Pellet"],   "AR 1.0–1.3")
-            with b: metric_card("Fragments", counts["Fragment"], "AR 1.3–4.0")
+            with a: metric_card("Pellet",   counts["Pellet"],   "AR 1.0–1.3")
+            with b: metric_card("Fragment", counts["Fragment"], "AR 1.3–4.0")
             st.write("")
-            metric_card("Filaments", counts["Filament"], "AR 0.8–1.0")
+            metric_card("Filament", counts["Filament"], "AR 0.8–1.0")
 
-        if detections:
+        if ratios:
             st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
-            section_head("Morphology Analysis", "02")
+            section_head("Morphology Distribution", "02")
 
             c1, c2 = st.columns(2)
             with c1:
-                fig = go.Figure(go.Pie(
-                    labels=list(counts.keys()),
-                    values=list(counts.values()),
-                    hole=0.60,
-                    marker=dict(colors=["#f43f5e","#00f5d4","#38bdf8","#64748b"], line=dict(width=0)),
-                    textinfo="percent+label",
-                    textfont=dict(family="JetBrains Mono", size=10)
-                ))
-                fig.update_layout(title="Morphology Composition")
-                st.plotly_chart(plotly_theme(fig, 400), use_container_width=True)
+                morph_counts = {k: v for k, v in counts.items() if v > 0}
+                fig = go.Figure(go.Pie(labels=list(morph_counts.keys()), values=list(morph_counts.values()), hole=0.58))
+                fig.update_layout(title="Particle Composition")
+                st.plotly_chart(plot_theme(fig, 390), use_container_width=True)
 
             with c2:
-                fig = go.Figure(go.Histogram(
-                    x=aspect_ratios, nbinsx=25,
-                    marker=dict(color="#00f5d4", opacity=0.75, line=dict(width=0))
-                ))
-                for xv, lbl in [(0.8,"←Fil"), (1.0,"Fil/Pel→"), (1.3,"Pel/Fra→"), (4.0,"Fra→")]:
-                    fig.add_vline(x=xv, line_dash="dot",
-                                  line_color="rgba(0,245,212,0.4)",
-                                  annotation_text=lbl,
-                                  annotation_font=dict(size=9, color="#00f5d4"))
-                fig.update_layout(title="Aspect Ratio Distribution",
-                                  xaxis_title="Width / Height",
-                                  yaxis_title="Count")
-                st.plotly_chart(plotly_theme(fig, 400), use_container_width=True)
+                fig = go.Figure(go.Histogram(x=ratios, nbinsx=25))
+                for v in [0.8, 1.0, 1.3, 4.0]:
+                    fig.add_vline(x=v, line_dash="dot")
+                fig.update_layout(title="Aspect Ratio Distribution", xaxis_title="Width / Height", yaxis_title="Count")
+                st.plotly_chart(plot_theme(fig, 390), use_container_width=True)
 
             section_head("Particle-level Results", "03")
             st.dataframe(pd.DataFrame(detections), use_container_width=True, hide_index=True)
@@ -957,96 +697,69 @@ elif page == "🔬  Microplastic Vision":
 
 elif page == "🧬  Raman Spectroscopy":
 
-    section_head("Raman Spectroscopy Lab", "01",
-                 "Spectral preprocessing → peak detection → polymer classification. Shift in cm⁻¹, intensity normalized.")
+    section_head("Raman Spectroscopy Laboratory", "01", "Signal processing, peak detection and polymer identification.")
 
-    uploaded = st.file_uploader("Upload Raman spectrum (.txt)", type=["txt"], key="raman_upload")
+    uploaded = st.file_uploader("Upload Raman spectrum (.txt)", type=["txt"])
 
     if uploaded:
-        data      = pd.read_csv(uploaded, sep=r"\s+", header=None, names=["shift","intensity"]).dropna()
-        processed = process_raman(data)
+
+        raw       = pd.read_csv(uploaded, sep=r"\s+", header=None, names=["shift","intensity"]).dropna()
+        processed = process_raman(raw)
         X         = pd.DataFrame([processed], columns=[f"x{i}" for i in range(1400)])
-        prediction   = raman_model.predict(X)[0]
+
+        prediction    = raman_model.predict(X)[0]
         probabilities = raman_model.predict_proba(X)[0]
-        confidence   = probabilities.max()
-        peaks, _     = find_peaks(processed, prominence=0.01, distance=10)
+        confidence    = probabilities.max()
+        peaks, _      = find_peaks(processed, prominence=0.01, distance=10)
 
         peak_df = pd.DataFrame({
             "Raman Shift (cm⁻¹)": raman_grid[peaks],
             "Intensity": processed[peaks]
         }).sort_values("Intensity", ascending=False).head(10)
 
-        # spectrum chart
+        section_head("Raman Shift vs Intensity", "02")
+
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=data["shift"], y=data["intensity"],
-            mode="lines", name="Raw Spectrum",
-            line=dict(color="rgba(107,139,160,0.5)", width=1.2)
-        ))
-        fig.add_trace(go.Scatter(
-            x=raman_grid, y=processed,
-            mode="lines", name="Processed",
-            line=dict(color="#00f5d4", width=2.2)
-        ))
+        fig.add_trace(go.Scatter(x=raw["shift"], y=raw["intensity"], mode="lines", name="Raw Spectrum",       line=dict(color="rgba(120,145,165,0.55)", width=1.2)))
+        fig.add_trace(go.Scatter(x=raman_grid,   y=processed,        mode="lines", name="Processed Spectrum", line=dict(color="#00f5d4", width=2.3)))
         if len(peaks) > 0:
             fig.add_trace(go.Scatter(
                 x=raman_grid[peaks], y=processed[peaks],
                 mode="markers+text",
-                text=[f"{v:.0f}" for v in raman_grid[peaks]],
+                text=[f"{x:.0f}" for x in raman_grid[peaks]],
                 textposition="top center",
-                textfont=dict(family="JetBrains Mono", size=9, color="#f59e0b"),
-                marker=dict(size=8, color="#f59e0b", symbol="circle",
-                            line=dict(width=1.5, color="#030c18")),
-                name="Peaks"
+                marker=dict(size=8, color="#f59e0b"),
+                name="Detected Peaks"
             ))
-        fig.update_layout(title="Raman Shift vs Intensity",
-                          xaxis_title="Raman Shift (cm⁻¹)",
-                          yaxis_title="Normalized Intensity",
-                          legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-        st.plotly_chart(plotly_theme(fig, 520), use_container_width=True)
-
-        st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
+        fig.update_layout(title="Raw and Processed Raman Spectrum", xaxis_title="Raman Shift (cm⁻¹)", yaxis_title="Intensity", legend=dict(orientation="h"))
+        st.plotly_chart(plot_theme(fig, 530), use_container_width=True)
 
         c1, c2, c3, c4 = st.columns(4)
-        with c1: metric_card("Predicted Polymer", str(prediction),    "RBF SVM classification")
-        with c2: metric_card("Confidence",  f"{confidence*100:.1f}%", "Max class probability")
-        with c3: metric_card("Peak Count",  str(len(peaks)),          "Detected spectral peaks")
-        with c4: metric_card("Spectral Range", f"{raman_grid.min():.0f}–{raman_grid.max():.0f}", "cm⁻¹ shared grid")
+        with c1: metric_card("Predicted Polymer", str(prediction),         "RBF SVM")
+        with c2: metric_card("Confidence",        f"{confidence*100:.1f}%","Maximum class probability")
+        with c3: metric_card("Detected Peaks",    str(len(peaks)),         "Prominence-based detection")
+        with c4: metric_card("Feature Length",    "1400",                  "Common spectral grid")
 
         st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
-        section_head("Polymer Probability Profile", "02")
+        section_head("Polymer Probability Profile", "03")
 
-        prob_df = pd.DataFrame({
-            "Polymer": raman_model.classes_,
-            "Probability": probabilities
-        }).sort_values("Probability", ascending=True)
+        prob_df = pd.DataFrame({"Polymer": raman_model.classes_, "Probability": probabilities}).sort_values("Probability", ascending=True)
+        fig = go.Figure(go.Bar(x=prob_df["Probability"], y=prob_df["Polymer"], orientation="h"))
+        fig.update_layout(title="SVM Polymer Probabilities", xaxis_title="Probability")
+        st.plotly_chart(plot_theme(fig, 390), use_container_width=True)
 
-        fig = go.Figure(go.Bar(
-            x=prob_df["Probability"],
-            y=prob_df["Polymer"],
-            orientation="h",
-            marker=dict(
-                color=prob_df["Probability"],
-                colorscale=[[0,"rgba(0,245,212,0.15)"], [1,"rgba(0,245,212,0.90)"]],
-                line=dict(width=0)
-            )
-        ))
-        fig.update_layout(title="SVM Class Probabilities",
-                          xaxis_title="Probability", yaxis_title="Polymer")
-        st.plotly_chart(plotly_theme(fig, 380), use_container_width=True)
-
-        section_head("Dominant Raman Peaks", "03")
+        section_head("Dominant Raman Peaks", "04")
         st.dataframe(peak_df, use_container_width=True, hide_index=True)
 
         st.markdown(
             """
-            <div class="gc">
+            <div class="glass">
                 <span class="bdg bdg-teal">SPECTROSCOPY</span>
-                <h3 style="margin:10px 0 8px;font-size:16px;">What is being analyzed?</h3>
-                <p style="color:#8ca8c5;font-size:13px;line-height:1.7;margin:0;">
-                    Raman spectroscopy measures inelastic light scattering as a function of wavenumber shift.
-                    The resulting spectrum is a material fingerprint. PRAVAAH applies baseline correction,
-                    Savitzky–Golay smoothing and L2 normalization before passing the vector to the trained SVM.
+                <h3>What is Raman spectroscopy measuring?</h3>
+                <p class="small-muted">
+                    Raman spectroscopy represents the intensity of scattered light as a function of Raman shift.
+                    The resulting spectrum acts as a material fingerprint. KOSI applies interpolation onto a common
+                    spectral grid, Savitzky–Golay baseline correction, smoothing and L2 normalization before polymer classification.
                 </p>
             </div>
             """,
@@ -1060,10 +773,14 @@ elif page == "🧬  Raman Spectroscopy":
 
 elif page == "🌊  Water Quality":
 
-    section_head("Water Quality Intelligence", "01",
-                 "Enter measured environmental parameters and estimate the Water Quality Index.")
+    section_head("Water Quality Intelligence", "01", "Estimate Water Quality Index from environmental measurements.")
 
-    river_df = pd.read_csv("dataset/Results_MADE.csv")
+    river_csv = BASE_DIR / "dataset" / "Results_MADE.csv"
+    if river_csv.exists():
+        river_df = pd.read_csv(river_csv)
+    else:
+        st.warning("Reference dataset not available. Using default values.")
+        river_df = None
 
     features = [
         "Temperature",
@@ -1077,56 +794,38 @@ elif page == "🌊  Water Quality":
         "Conductivity (mho/ Cm)"
     ]
 
-    values   = {}
-    sections = st.columns(3)
+    defaults = {f: float(river_df[f].median()) if river_df is not None else 0.0 for f in features}
+
+    values = {}
+    cols   = st.columns(3)
     for i, feature in enumerate(features):
-        with sections[i % 3]:
-            values[feature] = st.number_input(feature, value=float(river_df[feature].median()))
+        with cols[i % 3]:
+            values[feature] = st.number_input(feature, value=defaults[feature])
 
     st.write("")
-    if st.button("⚡  ESTIMATE WATER QUALITY INDEX", use_container_width=True):
-        input_df   = pd.DataFrame([values])
-        prediction = float(river_model.predict(input_df)[0])
-        status     = ("Good" if prediction <= 50 else
-                      "Fair" if prediction <= 100 else
-                      "Poor" if prediction <= 200 else "Very Poor")
-        status_color = {"Good":"#22d3a0","Fair":"#f59e0b","Poor":"#f97316","Very Poor":"#f43f5e"}[status]
 
-        st.write("")
-        r1, r2, r3 = st.columns(3)
-        with r1: metric_card("Predicted WQI", f"{prediction:.2f}", "Random Forest estimate")
-        with r2: metric_card("Water Status",  status, "Estimated condition")
-        with r3: metric_card("Dominant Predictor", "Conductivity", "Feature importance ≈ 0.945")
+    if st.button("⚡ ESTIMATE WATER QUALITY", use_container_width=True):
 
-        st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
-        section_head("Environmental Profile Radar", "02")
+        prediction = float(river_model.predict(pd.DataFrame([values]))[0])
+        status     = ("Good" if prediction <= 50 else "Fair" if prediction <= 100 else "Poor" if prediction <= 200 else "Very Poor")
 
-        radar_labels = ["Temperature","DO","pH","Nitrate","Conductivity"]
-        radar_values = [
-            values["Temperature"],
-            values["Dissolved Oxygen"],
-            values["pH"],
-            values["Nitrate (mg/ L)"],
-            values["Conductivity (mho/ Cm)"]
-        ]
+        c1, c2, c3 = st.columns(3)
+        with c1: metric_card("Predicted WQI",      f"{prediction:.2f}", "Random Forest")
+        with c2: metric_card("Water Status",        status,              "Estimated condition")
+        with c3: metric_card("Dominant Predictor",  "Conductivity",      "Feature importance ≈ 0.945")
+
+        section_head("Environmental Parameter Profile", "02")
 
         fig = go.Figure()
         fig.add_trace(go.Scatterpolar(
-            r=radar_values, theta=radar_labels,
+            r=[values["Temperature"], values["Dissolved Oxygen"], values["pH"], values["Nitrate (mg/ L)"], values["Conductivity (mho/ Cm)"]],
+            theta=["Temperature","DO","pH","Nitrate","Conductivity"],
             fill="toself",
-            fillcolor="rgba(0,245,212,0.07)",
-            line=dict(color="#00f5d4", width=2),
-            name="Current Profile"
+            line=dict(color="#00f5d4"),
+            fillcolor="rgba(0,245,212,0.08)"
         ))
-        fig.update_layout(
-            title="Selected Water Parameters",
-            polar=dict(
-                bgcolor="rgba(255,255,255,0.015)",
-                radialaxis=dict(gridcolor="rgba(255,255,255,0.07)"),
-                angularaxis=dict(gridcolor="rgba(255,255,255,0.07)")
-            )
-        )
-        st.plotly_chart(plotly_theme(fig, 460), use_container_width=True)
+        fig.update_layout(title="Current Environmental Profile", polar=dict(bgcolor="rgba(255,255,255,0.015)"))
+        st.plotly_chart(plot_theme(fig, 450), use_container_width=True)
 
 
 # ============================================================
@@ -1135,96 +834,68 @@ elif page == "🌊  Water Quality":
 
 elif page == "🔮  Digital Twin":
 
-    section_head("River Digital Twin", "01",
-                 "Lagged environmental observations drive a next-state WQI forecast.")
+    section_head("River Digital Twin", "01", "Historical observations → temporal features → next-state WQI forecast.")
 
-    site = st.selectbox("River System", ["Ganga", "Sangam"])
-    data = (ganga if site == "Ganga" else sangam).copy().sort_values("Date")
+    if digital_model is None:
+        st.warning("Digital Twin model not available in this deployment.")
+    elif ganga is None or sangam is None:
+        st.warning("River datasets not available in this deployment.")
+    else:
+        site = st.selectbox("Select River", ["Ganga", "Sangam"])
+        data = (ganga.copy() if site == "Ganga" else sangam.copy()).sort_values("Date")
 
-    for col in ["WQI","DO","pH","ORP","Cond","Temp"]:
-        data[f"{col}_lag1"] = data[col].shift(1)
-        data[f"{col}_lag2"] = data[col].shift(2)
-        data[f"{col}_lag3"] = data[col].shift(3)
+        for col in ["WQI","DO","pH","ORP","Cond","Temp"]:
+            data[f"{col}_lag1"] = data[col].shift(1)
+            data[f"{col}_lag2"] = data[col].shift(2)
+            data[f"{col}_lag3"] = data[col].shift(3)
 
-    clean = data.dropna().copy()
-    digital_features = [
-        f"{p}_lag{l}"
-        for p in ["WQI","DO","pH","ORP","Cond","Temp"]
-        for l in [1,2,3]
-    ]
+        clean = data.dropna().copy()
 
-    latest     = clean.iloc[-1:]
-    future_wqi = float(digital_model.predict(latest[digital_features])[0])
-    current_wqi = float(clean["WQI"].iloc[-1])
-    delta       = future_wqi - current_wqi
-    direction   = "Improving 📉" if delta < 0 else ("Worsening 📈" if delta > 0 else "Stable ━")
+        digital_features = [f"{p}_lag{l}" for p in ["WQI","DO","pH","ORP","Cond","Temp"] for l in [1,2,3]]
 
-    c1, c2, c3 = st.columns(3)
-    with c1: metric_card("Current WQI",       f"{current_wqi:.2f}", "Latest observed")
-    with c2: metric_card("Forecast WQI",      f"{future_wqi:.2f}", "Next-state prediction")
-    with c3: metric_card("Expected Direction", direction,            f"Δ = {delta:+.2f}")
+        latest      = clean.iloc[-1:]
+        future_wqi  = float(digital_model.predict(latest[digital_features])[0])
+        current_wqi = float(clean["WQI"].iloc[-1])
+        delta       = future_wqi - current_wqi
+        direction   = "Improving" if delta < 0 else ("Worsening" if delta > 0 else "Stable")
 
-    st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
-    section_head("Historical + Forecast Timeline", "02")
+        c1, c2, c3 = st.columns(3)
+        with c1: metric_card("Current WQI",       f"{current_wqi:.2f}", "Latest observed state")
+        with c2: metric_card("Forecast WQI",      f"{future_wqi:.2f}", "Next-state prediction")
+        with c3: metric_card("Expected Direction", direction,            f"Δ = {delta:+.2f}")
 
-    recent      = clean.tail(300)
-    future_date = recent["Date"].iloc[-1] + pd.Timedelta(days=1)
+        section_head("Historical + Forecast Timeline", "02")
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=recent["Date"], y=recent["WQI"],
-        mode="lines", name="Historical WQI",
-        line=dict(color="#38bdf8", width=1.8),
-        fill="tozeroy", fillcolor="rgba(56,189,248,0.04)"
-    ))
-    fig.add_trace(go.Scatter(
-        x=[recent["Date"].iloc[-1], future_date],
-        y=[current_wqi, future_wqi],
-        mode="lines+markers", name="Forecast",
-        line=dict(color="#00f5d4", width=3, dash="dot"),
-        marker=dict(size=10, color="#00f5d4",
-                    line=dict(width=2, color="#030c18"))
-    ))
-    fig.add_vline(
-        x=recent["Date"].iloc[-1],
-        line_dash="dash", line_color="rgba(0,245,212,0.3)",
-        annotation_text="NOW", annotation_font=dict(color="#00f5d4", size=10)
-    )
-    fig.update_layout(title=f"{site} — Historical WQI & Next-State Forecast",
-                      xaxis_title="Date", yaxis_title="WQI")
-    st.plotly_chart(plotly_theme(fig, 500), use_container_width=True)
+        recent      = clean.tail(300)
+        future_date = recent["Date"].iloc[-1] + pd.Timedelta(days=1)
 
-    st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
-    section_head("Temporal WQI Heatmap", "03")
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=recent["Date"], y=recent["WQI"], mode="lines", name="Historical WQI", line=dict(color="#38bdf8", width=1.8)))
+        fig.add_trace(go.Scatter(
+            x=[recent["Date"].iloc[-1], future_date],
+            y=[current_wqi, future_wqi],
+            mode="lines+markers", name="Forecast",
+            line=dict(color="#00f5d4", width=3, dash="dot"),
+            marker=dict(size=9)
+        ))
+        fig.add_vline(x=recent["Date"].iloc[-1], line_dash="dash")
+        fig.update_layout(title=f"{site} — Historical vs Next-State Forecast", xaxis_title="Date", yaxis_title="WQI")
+        st.plotly_chart(plot_theme(fig, 500), use_container_width=True)
 
-    heat = data.copy()
-    heat["Month"] = heat["Date"].dt.month
-    heat["Day"]   = heat["Date"].dt.day
-    pivot = heat.pivot_table(index="Month", columns="Day", values="WQI", aggfunc="mean")
+        section_head("Temporal WQI Heatmap", "03")
 
-    fig = go.Figure(go.Heatmap(
-        z=pivot.values, x=pivot.columns, y=pivot.index,
-        colorscale=[[0,"#030c18"],[0.3,"#0f2a3d"],[0.6,"#00789c"],[1,"#00f5d4"]],
-        colorbar=dict(title="WQI", tickfont=dict(family="JetBrains Mono", size=10))
-    ))
-    fig.update_layout(title="River State Across Days and Months",
-                      xaxis_title="Day of Month", yaxis_title="Month")
-    st.plotly_chart(plotly_theme(fig, 500), use_container_width=True)
+        heat          = data.copy()
+        heat["Month"] = heat["Date"].dt.month
+        heat["Day"]   = heat["Date"].dt.day
+        pivot         = heat.pivot_table(index="Month", columns="Day", values="WQI", aggfunc="mean")
 
-    st.markdown(
-        """
-        <div class="gc">
-            <span class="bdg bdg-violet">TEMPORAL AI</span>
-            <h3 style="margin:10px 0 8px;font-size:16px;">How the Digital Twin works</h3>
-            <p style="color:#8ca8c5;font-size:13px;line-height:1.7;margin:0;">
-                The forecasting model is trained on three-lag windows of WQI, DO, pH, ORP, Conductivity and
-                Temperature. Given the most recent observation sequence, it predicts the next river state —
-                enabling proactive environmental intervention before conditions deteriorate.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        fig = go.Figure(go.Heatmap(
+            z=pivot.values, x=pivot.columns, y=pivot.index,
+            colorscale=[[0,"#030c18"],[0.3,"#0f2a3d"],[0.6,"#00789c"],[1,"#00f5d4"]],
+            colorbar=dict(title="WQI")
+        ))
+        fig.update_layout(title="River WQI Temporal Heatmap", xaxis_title="Day", yaxis_title="Month")
+        st.plotly_chart(plot_theme(fig, 500), use_container_width=True)
 
 
 # ============================================================
@@ -1233,63 +904,47 @@ elif page == "🔮  Digital Twin":
 
 elif page == "📊  Research Lab":
 
-    section_head("Research & Model Laboratory", "01", "Performance summary across all four PRAVAAH modules.")
+    section_head("Research & Model Laboratory", "01", "Core experimental results from the KOSI development pipeline.")
 
     metrics = pd.DataFrame({
-        "Module": ["YOLOv8","Raman SVM","River Random Forest","Digital Twin RF"],
-        "Task":   ["Microplastic detection","Polymer identification","WQI estimation","WQI forecasting"],
+        "Module": ["YOLOv8","Raman SVM","River Random Forest","Digital Twin Random Forest"],
+        "Task":   ["Microplastic detection","Polymer identification","WQI estimation","Next-state WQI forecasting"],
         "Metric": ["mAP@50","Accuracy","R²","R²"],
         "Score":  [0.734, 0.939, 0.933, 0.987]
     })
     st.dataframe(metrics, use_container_width=True, hide_index=True)
 
-    st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
     section_head("Performance Landscape", "02")
 
     radar = go.Figure()
     radar.add_trace(go.Scatterpolar(
         r=[0.734, 0.939, 0.933, 0.987],
-        theta=["YOLO Detection","Raman SVM","River RF","Digital Twin"],
+        theta=["YOLO","Raman","River","Digital Twin"],
         fill="toself",
-        fillcolor="rgba(0,245,212,0.07)",
         line=dict(color="#00f5d4", width=2.5),
-        name="Model Score"
+        fillcolor="rgba(0,245,212,0.07)"
     ))
     radar.update_layout(
         title="Core Model Performance",
-        polar=dict(
-            bgcolor="rgba(255,255,255,0.015)",
-            radialaxis=dict(visible=True, range=[0,1],
-                            gridcolor="rgba(255,255,255,0.07)",
-                            tickfont=dict(family="JetBrains Mono", size=9)),
-            angularaxis=dict(gridcolor="rgba(255,255,255,0.07)",
-                             tickfont=dict(family="Space Grotesk", size=11))
-        )
+        polar=dict(bgcolor="rgba(255,255,255,0.015)", radialaxis=dict(visible=True, range=[0,1]))
     )
-    st.plotly_chart(plotly_theme(radar, 480), use_container_width=True)
+    st.plotly_chart(plot_theme(radar, 480), use_container_width=True)
 
-    st.markdown('<div class="teal-divider"></div>', unsafe_allow_html=True)
     section_head("Module Overview", "03")
 
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(
             """
-            <div class="gc">
+            <div class="glass">
                 <span class="bdg bdg-teal">VISION</span>
-                <h3 style="margin:10px 0 8px;font-size:15px;">Microplastic Detection</h3>
-                <p style="color:#8ca8c5;font-size:13px;line-height:1.7;margin:0;">
-                    YOLOv8 identifies particle bounding boxes in microscope images.
-                    Aspect-ratio thresholds classify morphology into Pellet, Fragment and Filament.
-                </p>
+                <h3>Microplastic Detection</h3>
+                <p class="small-muted">YOLOv8 identifies microplastic particles in microscope images. Bounding-box geometry is used for morphology analysis.</p>
             </div>
-            <div class="gc">
+            <div class="glass">
                 <span class="bdg bdg-sky">SPECTRAL</span>
-                <h3 style="margin:10px 0 8px;font-size:15px;">Polymer Identification</h3>
-                <p style="color:#8ca8c5;font-size:13px;line-height:1.7;margin:0;">
-                    Raman spectra are baseline-corrected, smoothed and L2-normalized
-                    before classification with an RBF Support Vector Machine.
-                </p>
+                <h3>Raman Polymer Identification</h3>
+                <p class="small-muted">Raman spectra are interpolated, baseline-corrected, smoothed and normalized before RBF SVM classification.</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -1297,21 +952,15 @@ elif page == "📊  Research Lab":
     with c2:
         st.markdown(
             """
-            <div class="gc">
+            <div class="glass">
                 <span class="bdg bdg-amber">ENVIRONMENTAL</span>
-                <h3 style="margin:10px 0 8px;font-size:15px;">Water Quality</h3>
-                <p style="color:#8ca8c5;font-size:13px;line-height:1.7;margin:0;">
-                    Nine environmental parameters are mapped to a Water Quality Index score
-                    using a trained Random Forest regressor (R² = 0.933).
-                </p>
+                <h3>Water Quality</h3>
+                <p class="small-muted">Environmental parameters are mapped to Water Quality Index using a Random Forest regression model.</p>
             </div>
-            <div class="gc">
+            <div class="glass">
                 <span class="bdg bdg-violet">TEMPORAL</span>
-                <h3 style="margin:10px 0 8px;font-size:15px;">Digital Twin</h3>
-                <p style="color:#8ca8c5;font-size:13px;line-height:1.7;margin:0;">
-                    Three-lag temporal windows feed a Random Forest that forecasts
-                    the next WQI state with R² = 0.987 — enabling proactive monitoring.
-                </p>
+                <h3>Digital Twin</h3>
+                <p class="small-muted">Historical lagged observations are used to predict the next river WQI state and visualize temporal behaviour.</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -1324,10 +973,10 @@ elif page == "📊  Research Lab":
 
 st.markdown(
     """
-    <div class="pravaah-footer">
-        KOSI &nbsp;·&nbsp; RIVER INTELLIGENCE PLATFORM
+    <div class="footer">
+        KOSI · MULTIMODAL ENVIRONMENTAL INTELLIGENCE
         <br><br>
-        VISION &nbsp;·&nbsp; SPECTROSCOPY &nbsp;·&nbsp; WATER QUALITY &nbsp;·&nbsp; DIGITAL TWIN
+        VISION · SPECTROSCOPY · WATER QUALITY · DIGITAL TWIN
     </div>
     """,
     unsafe_allow_html=True
