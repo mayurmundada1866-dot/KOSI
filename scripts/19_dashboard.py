@@ -532,12 +532,13 @@ st.markdown(
 # PATHS
 # ============================================================
 
-YOLO_PATH        = "runs/detect/runs/yolo_baseline/weights/best.pt"
-RAMAN_MODEL_PATH = "models/raman_svm.pkl"
-RIVER_MODEL_PATH = "models/river_rf.pkl"
-DIGITAL_MODEL_PATH = "models/digital_twin_rf.pkl"
-RAMAN_FOLDER     = Path("dataset/A Raman database of microplastics weathered under natural environments")
+BASE_DIR = Path(__file__).parent.parent  # KOSI/
 
+YOLO_PATH          = BASE_DIR / "models" / "yolo_best.pt"
+RAMAN_MODEL_PATH   = BASE_DIR / "models" / "raman_svm.pkl"
+RIVER_MODEL_PATH   = BASE_DIR / "models" / "river_rf.pkl"
+DIGITAL_MODEL_PATH = BASE_DIR / "models" / "digital_twin_rf.pkl"
+RAMAN_FOLDER       = BASE_DIR / "dataset" / "A Raman database of microplastics weathered under natural environments"
 
 # ============================================================
 # LOAD MODELS
