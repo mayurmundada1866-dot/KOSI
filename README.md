@@ -1,7 +1,11 @@
 # KOSI
 ### Multimodal AI for Microplastic and River Environmental Intelligence
 
+
+> **Live Demo:** [KOSI Dashboard](https://mayurmundada1866-dot-kosi-scripts19-dashboard-u3qtvo.streamlit.app)
+
 KOSI is a multimodal environmental intelligence platform combining **computer vision, Raman spectroscopy, water-quality modelling, and temporal forecasting** into one integrated workflow — from microplastic detection to future river-state forecasting.
+
 
 ---
 
