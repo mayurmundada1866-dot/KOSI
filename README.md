@@ -186,3 +186,12 @@ streamlit run scripts/19_dashboard.py
 ## Author
 
 **Mayur Mundada** · [GitHub](https://github.com/mayurmundada1866-dot)
+
+## Dataset Sources
+
+- **Microplastic Images (YOLO training)** — sourced from a public microplastic detection dataset
+- **Raman Spectra** — A Raman database of microplastics weathered under natural environments
+- **River Water Quality** — water quality measurement dataset (Results_MADE.csv)
+- **Ganga/Sangam Temporal Data** — river monitoring time-series data
+
+> Exact dataset links to be added. Datasets are used strictly for academic/research purposes.
